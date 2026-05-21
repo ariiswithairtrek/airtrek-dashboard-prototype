@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { analyzeFleetPerformance } from '../services/geminiService';
+import { analyzeFleetPerformance } from '../services/fleetAnalyzer';
 import { TowLog, ChatMessage } from '../types';
 
 interface Props {

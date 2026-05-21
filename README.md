@@ -1,20 +1,16 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Airtrek Robotics Dashboard
 
-# Run and deploy your AI Studio app
+A prototype dashboard for monitoring Airtrek's autonomous aircraft towing fleet — fleet metrics, historical tow logs, a per-tow detail view, and an offline "Airtrek Insight" assistant that answers questions directly from the log data.
 
-This contains everything you need to run your app locally.
+## Run locally
 
-View your app in AI Studio: https://ai.studio/apps/59ee7a54-1955-4a5d-afe8-457cce681fe0
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Run the app:
    `npm run dev`
+
+## Deploy
+
+Pushing to `main` builds and publishes to GitHub Pages automatically via [.github/workflows/deploy.yml](.github/workflows/deploy.yml). In the repo settings, set **Pages → Source → GitHub Actions**.
