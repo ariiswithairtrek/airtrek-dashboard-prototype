@@ -1,0 +1,7 @@
+{
+  "name": "Airtrek Robotics Dashboard",
+  "description": "A high-performance robot interface dashboard for airport towing operations, featuring real-time metrics, historical logs, and AI-powered flight data analysis.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

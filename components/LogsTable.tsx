@@ -1,0 +1,56 @@
+
+import React from 'react';
+import { TowLog } from '../types';
+
+interface Props {
+  logs: TowLog[];
+  onRowClick: (log: TowLog) => void;
+}
+
+const LogsTable: React.FC<Props> = ({ logs, onRowClick }) => {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-gray-800/50 bg-[#1C2128]/40 shadow-2xl">
+      <table className="w-full text-left">
+        <thead className="bg-[#1C2128]">
+          <tr className="text-gray-500 text-[11px] font-bold uppercase tracking-[0.1em]">
+            <th className="px-8 py-5">Date/Time</th>
+            <th className="px-8 py-5">Tail Number</th>
+            <th className="px-8 py-5">Duration</th>
+            <th className="px-8 py-5">Operator</th>
+            <th className="px-8 py-5 text-right">Report</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-800/30">
+          {logs.map((log) => (
+            <tr 
+              key={log.id} 
+              onClick={() => onRowClick(log)}
+              className="hover:bg-gray-800/30 cursor-pointer transition-colors text-[13px] text-gray-300 group"
+            >
+              <td className="px-8 py-5 mono text-gray-400 group-hover:text-gray-200">{log.dateTime}</td>
+              <td className="px-8 py-5 font-black text-white text-base tracking-tight group-hover:scale-[1.02] transition-transform">{log.tailNumber}</td>
+              <td className="px-8 py-5 mono group-hover:text-gray-200">{log.duration}</td>
+              <td className="px-8 py-5 group-hover:text-gray-200">{log.operator}</td>
+              <td className="px-8 py-5">
+                <div className="flex justify-end">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      alert(`Sending report for ${log.tailNumber}...`);
+                    }}
+                    className="bg-gray-800/60 hover:bg-gray-700 text-gray-300 hover:text-white px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-[0.1em] transition-colors border border-gray-700 hover:border-gray-500"
+                  >
+                    <i className="fas fa-paper-plane mr-1.5 opacity-70"></i>
+                    Send
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default LogsTable;
