@@ -5,6 +5,7 @@ import MetricCard from './components/MetricCard';
 import LogsTable from './components/LogsTable';
 import AIChat from './components/AIChat';
 import TowDetailDrawer from './components/TowDetailDrawer';
+import TowTrendChart from './components/TowTrendChart';
 import { MOCK_LOGS } from './constants';
 import { TowLog } from './types';
 
@@ -74,12 +75,14 @@ const App: React.FC = () => {
                 subValue="5%" 
                 trend="up" 
               />
-              <MetricCard 
-                label="Avg. Tow Time" 
-                value="17m 45s" 
+              <MetricCard
+                label="Avg. Tow Time"
+                value="17m 45s"
                 accent={true}
               />
             </div>
+
+            <TowTrendChart />
           </section>
 
           <section className="mb-12">

@@ -123,3 +123,11 @@ export const getTrajectory = (path?: string): MapPoint[] => {
     end,
   ];
 };
+
+// Daily tow counts for the last 30 days (oldest -> newest). Sums to 538 to
+// match the "Total Tows (30D)" metric card.
+export const DAILY_30D: number[] = [22, 19, 23, 27, 17, 8, 14, 17, 21, 25, 16, 24, 9, 6, 17, 22, 22, 17, 19, 7, 14, 22, 16, 25, 17, 19, 16, 16, 25, 16];
+
+// Average tows per hour across the 30 days, index = hour 0..23. Bimodal:
+// peaks in the morning (06:00-09:00) and afternoon (16:00-19:00).
+export const HOURLY_AVG: number[] = [0.1, 0.1, 0.1, 0.1, 0.1, 0.5, 1.4, 1.7, 1.7, 1.4, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 1.3, 1.6, 1.6, 1.3, 0.4, 0.4, 0.4, 0.1];
