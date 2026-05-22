@@ -53,18 +53,18 @@ export const MOCK_LOGS: TowLog[] = [
     dateTime: '2026-01-31 18:23', 
     tailNumber: 'N586BJ', 
     duration: '18m', 
-    operator: 'J. Doe', 
+    operator: 'J. Doe',
     status: 'online',
-    details: { distance: '380 ft', maxSpeed: '1.9 mph', events: 1, batteryEnd: '88%', path: 'Hangar 1 -> Hangar 2' }
+    details: { distance: '380 ft', maxSpeed: '1.9 mph', events: 0, batteryEnd: '88%', path: 'Hangar 1 -> Hangar 2' }
   },
   { 
     id: '6', 
     dateTime: '2026-01-31 14:12', 
     tailNumber: 'N994LL', 
     duration: '25m', 
-    operator: 'M. Chen', 
+    operator: 'M. Chen',
     status: 'online',
-    details: { distance: '520 ft', maxSpeed: '2.3 mph', events: 3, batteryEnd: '72%', path: 'Hangar 2 -> Ramp' }
+    details: { distance: '520 ft', maxSpeed: '2.3 mph', events: 0, batteryEnd: '72%', path: 'Hangar 2 -> Ramp' }
   },
   { 
     id: '7', 
