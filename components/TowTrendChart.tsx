@@ -3,14 +3,44 @@ import { DAILY_30D, HOURLY_AVG } from '../constants';
 
 type Mode = '30d' | 'daily';
 
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+// Catmull-Rom -> cubic bezier, with control points clamped to the plot box so
+// the smoothed curve never overshoots below the baseline or above the top.
+const smoothPath = (pts: { x: number; y: number }[]): string => {
+  if (pts.length < 2) return '';
+  const t = 0.16;
+  let d = `M ${pts[0].x},${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    const c1x = p1.x + (p2.x - p0.x) * t;
+    const c1y = clamp(p1.y + (p2.y - p0.y) * t, 0, 100);
+    const c2x = p2.x - (p3.x - p1.x) * t;
+    const c2y = clamp(p2.y - (p3.y - p1.y) * t, 0, 100);
+    d += ` C ${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`;
+  }
+  return d;
+};
+
 const TowTrendChart: React.FC = () => {
   const [mode, setMode] = useState<Mode>('30d');
   const [hover, setHover] = useState<number | null>(null);
 
   const data = mode === '30d' ? DAILY_30D : HOURLY_AVG;
+  const n = data.length;
   const rawMax = Math.max(...data);
   const yMax = mode === '30d' ? Math.ceil(rawMax / 4) * 4 : Math.ceil(rawMax * 2) / 2;
-  const gridVals = [1, 0.75, 0.5, 0.25, 0].map((f) => yMax * f);
+  const avg = data.reduce((a, b) => a + b, 0) / n;
+  const gridFractions = [1, 0.75, 0.5, 0.25, 0];
+
+  const X = (i: number) => (i / (n - 1)) * 100;
+  const Y = (v: number) => (1 - v / yMax) * 100;
+  const points = data.map((v, i) => ({ x: X(i), y: Y(v) }));
+  const linePath = smoothPath(points);
+  const areaPath = `${linePath} L 100,100 L 0,100 Z`;
 
   const today = new Date();
   const dateLabel = (i: number) => {
@@ -18,20 +48,20 @@ const TowTrendChart: React.FC = () => {
     d.setDate(d.getDate() - (DAILY_30D.length - 1 - i));
     return `${d.getMonth() + 1}/${d.getDate()}`;
   };
-
-  const isPeak = (i: number) =>
-    mode === 'daily'
-      ? (i >= 6 && i <= 9) || (i >= 16 && i <= 19)
-      : data[i] === rawMax;
-
-  const xLabel = (i: number) =>
-    mode === '30d' ? dateLabel(i) : `${String(i).padStart(2, '0')}:00`;
-
+  const xLabel = (i: number) => (mode === '30d' ? dateLabel(i) : `${String(i).padStart(2, '0')}:00`);
   const valLabel = (i: number) =>
     mode === '30d' ? `${data[i]} tows` : `${data[i].toFixed(1)} tows/hr`;
-
   const fmtGrid = (v: number) => (mode === '30d' ? Math.round(v).toString() : v.toFixed(1));
   const ticks = mode === '30d' ? [0, 7, 14, 21, 29] : [0, 6, 12, 18, 23];
+
+  // Daily peak windows to shade (start hour, end hour).
+  const peakBands = mode === 'daily' ? [[6, 9], [16, 19]] : [];
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    setHover(clamp(Math.round(ratio * (n - 1)), 0, n - 1));
+  };
 
   return (
     <div className="bg-[#161B22]/60 border border-gray-800/60 rounded-2xl p-6 mt-8">
@@ -69,51 +99,137 @@ const TowTrendChart: React.FC = () => {
       <div className="flex gap-3">
         {/* Y-axis labels */}
         <div className="flex flex-col justify-between h-56 text-[9px] text-gray-600 mono text-right w-7 shrink-0">
-          {gridVals.map((g, i) => (
-            <span key={i}>{fmtGrid(g)}</span>
+          {gridFractions.map((f, i) => (
+            <span key={i}>{fmtGrid(yMax * f)}</span>
           ))}
         </div>
 
         {/* Plot */}
         <div className="flex-1 min-w-0">
-          <div className="relative h-56">
-            {/* Gridlines */}
-            {gridVals.map((_, i) => (
-              <div
-                key={i}
-                className="absolute left-0 right-0 border-t border-gray-800/40"
-                style={{ top: `${(i / (gridVals.length - 1)) * 100}%` }}
-              />
-            ))}
-            {/* Bars */}
-            <div className="absolute inset-0 flex items-end gap-[2px]">
-              {data.map((v, i) => (
-                <div
+          <div
+            className="relative h-56"
+            onMouseMove={onMove}
+            onMouseLeave={() => setHover(null)}
+          >
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="towArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#00D1FF" stopOpacity="0.38" />
+                  <stop offset="100%" stopColor="#00D1FF" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+
+              {/* Peak window shading (daily) */}
+              {peakBands.map(([s, e], i) => (
+                <rect
                   key={i}
-                  onMouseEnter={() => setHover(i)}
-                  onMouseLeave={() => setHover(null)}
-                  className="flex-1 h-full flex items-end relative cursor-pointer"
-                >
-                  <div
-                    className={`w-full rounded-t-[2px] transition-all ${
-                      isPeak(i) ? 'bg-[#FF4D00]' : 'bg-[#2F6FED]'
-                    } ${hover === i ? 'brightness-125' : ''}`}
-                    style={{ height: `${(v / yMax) * 100}%` }}
-                  />
-                  {hover === i && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-20 whitespace-nowrap bg-[#0B0E14] border border-gray-700 rounded px-2 py-1 text-[9px] mono shadow-lg pointer-events-none">
-                      <span className="text-gray-400">{xLabel(i)}</span>{' '}
-                      <span className="text-white font-bold">{valLabel(i)}</span>
-                    </div>
-                  )}
-                </div>
+                  x={X(s)}
+                  y={0}
+                  width={X(e) - X(s)}
+                  height={100}
+                  fill="#FF4D00"
+                  opacity={0.08}
+                />
               ))}
+
+              {/* Gridlines */}
+              {gridFractions.map((f, i) => (
+                <line
+                  key={i}
+                  x1={0}
+                  x2={100}
+                  y1={(1 - f) * 100}
+                  y2={(1 - f) * 100}
+                  stroke="#374151"
+                  strokeOpacity={0.35}
+                  strokeWidth={1}
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
+
+              {/* Average reference line */}
+              <line
+                x1={0}
+                x2={100}
+                y1={Y(avg)}
+                y2={Y(avg)}
+                stroke="#9CA3AF"
+                strokeWidth={1}
+                strokeDasharray="3 3"
+                strokeOpacity={0.5}
+                vectorEffect="non-scaling-stroke"
+              />
+
+              {/* Area + line */}
+              <path d={areaPath} fill="url(#towArea)" />
+              <path
+                d={linePath}
+                fill="none"
+                stroke="#00D1FF"
+                strokeWidth={2}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+                className="drop-shadow-[0_0_4px_rgba(0,209,255,0.55)]"
+              />
+
+              {/* Hover crosshair */}
+              {hover !== null && (
+                <line
+                  x1={X(hover)}
+                  x2={X(hover)}
+                  y1={0}
+                  y2={100}
+                  stroke="#FFFFFF"
+                  strokeOpacity={0.25}
+                  strokeWidth={1}
+                  strokeDasharray="2 2"
+                  vectorEffect="non-scaling-stroke"
+                />
+              )}
+            </svg>
+
+            {/* Average label */}
+            <div
+              className="absolute right-0 -translate-y-1/2 text-[8px] mono text-gray-500 bg-[#161B22] px-1 pointer-events-none"
+              style={{ top: `${Y(avg)}%` }}
+            >
+              avg {mode === '30d' ? avg.toFixed(0) : avg.toFixed(1)}
             </div>
+
+            {/* Hover dot (HTML so it stays round) */}
+            {hover !== null && (
+              <div
+                className="absolute w-2.5 h-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white border-2 border-[#00D1FF] shadow-[0_0_8px_#00D1FF] pointer-events-none"
+                style={{ left: `${X(hover)}%`, top: `${Y(data[hover])}%` }}
+              />
+            )}
+
+            {/* Tooltip */}
+            {hover !== null && (
+              <div
+                className="absolute z-20 -translate-x-1/2 -translate-y-full mb-0 whitespace-nowrap bg-[#0B0E14] border border-gray-700 rounded px-2 py-1 text-[9px] mono shadow-lg pointer-events-none"
+                style={{
+                  left: `${clamp(X(hover), 8, 92)}%`,
+                  top: `calc(${Y(data[hover])}% - 8px)`,
+                }}
+              >
+                <span className="text-gray-400">{xLabel(hover)}</span>{' '}
+                <span className="text-white font-bold">{valLabel(hover)}</span>
+              </div>
+            )}
           </div>
+
           {/* X-axis ticks */}
-          <div className="flex justify-between mt-2 text-[9px] text-gray-600 mono">
+          <div className="relative mt-2 h-3">
             {ticks.map((i) => (
-              <span key={i}>{xLabel(i)}</span>
+              <span
+                key={i}
+                className="absolute -translate-x-1/2 text-[9px] text-gray-600 mono"
+                style={{ left: `${clamp(X(i), 3, 97)}%` }}
+              >
+                {xLabel(i)}
+              </span>
             ))}
           </div>
         </div>
