@@ -33,7 +33,6 @@ const TowTrendChart: React.FC = () => {
   const n = data.length;
   const rawMax = Math.max(...data);
   const yMax = mode === '30d' ? Math.ceil(rawMax / 4) * 4 : Math.ceil(rawMax * 2) / 2;
-  const avg = data.reduce((a, b) => a + b, 0) / n;
   const gridFractions = [1, 0.75, 0.5, 0.25, 0];
 
   const X = (i: number) => (i / (n - 1)) * 100;
@@ -53,9 +52,6 @@ const TowTrendChart: React.FC = () => {
     mode === '30d' ? `${data[i]} tows` : `${data[i].toFixed(1)} tows/hr`;
   const fmtGrid = (v: number) => (mode === '30d' ? Math.round(v).toString() : v.toFixed(1));
   const ticks = mode === '30d' ? [0, 7, 14, 21, 29] : [0, 6, 12, 18, 23];
-
-  // Daily peak windows to shade (start hour, end hour).
-  const peakBands = mode === 'daily' ? [[6, 9], [16, 19]] : [];
 
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -114,23 +110,10 @@ const TowTrendChart: React.FC = () => {
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="towArea" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#00D1FF" stopOpacity="0.38" />
+                  <stop offset="0%" stopColor="#00D1FF" stopOpacity="0.18" />
                   <stop offset="100%" stopColor="#00D1FF" stopOpacity="0" />
                 </linearGradient>
               </defs>
-
-              {/* Peak window shading (daily) */}
-              {peakBands.map(([s, e], i) => (
-                <rect
-                  key={i}
-                  x={X(s)}
-                  y={0}
-                  width={X(e) - X(s)}
-                  height={100}
-                  fill="#FF4D00"
-                  opacity={0.08}
-                />
-              ))}
 
               {/* Gridlines */}
               {gridFractions.map((f, i) => (
@@ -147,19 +130,6 @@ const TowTrendChart: React.FC = () => {
                 />
               ))}
 
-              {/* Average reference line */}
-              <line
-                x1={0}
-                x2={100}
-                y1={Y(avg)}
-                y2={Y(avg)}
-                stroke="#9CA3AF"
-                strokeWidth={1}
-                strokeDasharray="3 3"
-                strokeOpacity={0.5}
-                vectorEffect="non-scaling-stroke"
-              />
-
               {/* Area + line */}
               <path d={areaPath} fill="url(#towArea)" />
               <path
@@ -170,7 +140,6 @@ const TowTrendChart: React.FC = () => {
                 strokeLinejoin="round"
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
-                className="drop-shadow-[0_0_4px_rgba(0,209,255,0.55)]"
               />
 
               {/* Hover crosshair */}
@@ -188,14 +157,6 @@ const TowTrendChart: React.FC = () => {
                 />
               )}
             </svg>
-
-            {/* Average label */}
-            <div
-              className="absolute right-0 -translate-y-1/2 text-[8px] mono text-gray-500 bg-[#161B22] px-1 pointer-events-none"
-              style={{ top: `${Y(avg)}%` }}
-            >
-              avg {mode === '30d' ? avg.toFixed(0) : avg.toFixed(1)}
-            </div>
 
             {/* Hover dot (HTML so it stays round) */}
             {hover !== null && (
