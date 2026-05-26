@@ -114,7 +114,7 @@ const FleetStatus: React.FC<Props> = ({ logs }) => {
                 </Row>
                 <Row label="Towing Distance">
                   <span className="text-white mono text-sm font-bold">
-                    {(tugStats.distance[name] || 0).toLocaleString()} ft
+                    {((tugStats.distance[name] || 0) / 5280).toFixed(1)} mi
                   </span>
                 </Row>
                 <Row label="Last Location">
