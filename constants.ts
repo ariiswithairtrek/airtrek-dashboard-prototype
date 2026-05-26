@@ -88,6 +88,30 @@ const OPERATORS = ['Chris Lee', 'Huzefa Dossaji', 'Jon Taylor', 'David Ladnier']
 const ZONES = ['Hangar 1', 'Hangar 2', 'Hangar 3', 'Hangar 4', 'Hangar 5', 'Ramp'];
 export const TUGS = ['Lektro', 'Mototok', 'Harlan', 'Towflexx'];
 
+// Target tug-usage split; logs are assigned to match these shares exactly.
+const TUG_USAGE: { name: string; pct: number }[] = [
+  { name: 'Lektro', pct: 0.45 },
+  { name: 'Harlan', pct: 0.3 },
+  { name: 'Mototok', pct: 0.15 },
+  { name: 'Towflexx', pct: 0.1 },
+];
+
+// Shuffled pool of `total` tug names matching the TUG_USAGE counts.
+const buildTugPool = (total: number, rng: () => number): string[] => {
+  const pool: string[] = [];
+  let assigned = 0;
+  TUG_USAGE.forEach((t, i) => {
+    const n = i === TUG_USAGE.length - 1 ? total - assigned : Math.round(total * t.pct);
+    for (let j = 0; j < n; j++) pool.push(t.name);
+    assigned += n;
+  });
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool;
+};
+
 const MS_DAY = 86400000;
 const TODAY = new Date(2026, 4, 25); // May 25, 2026
 const START = new Date(2026, 3, 1); // Apr 1, 2026
@@ -133,10 +157,11 @@ const trajLength = (route: string): number => {
 const generateLogs = (): TowLog[] => {
   const rngCount = makeRng(99); // drives only the earlier-period daily counts
   const rng = makeRng(20260525); // drives all per-mission fields
+  const rngTug = makeRng(7777); // shuffles the tug distribution independently
   const tails = buildTails(rng, 32);
-  const logs: TowLog[] = [];
-  let id = 0;
 
+  // Plan daily counts first so the exact total is known before assigning tugs.
+  const plan: { date: Date; count: number }[] = [];
   for (let d = new Date(START); d <= TODAY; d = new Date(d.getTime() + MS_DAY)) {
     const daysAgo = Math.round((TODAY.getTime() - d.getTime()) / MS_DAY);
     let count: number;
@@ -147,10 +172,15 @@ const generateLogs = (): TowLog[] => {
       const base = dow === 0 || dow === 6 ? 11 : 19;
       count = Math.max(5, base + Math.floor(rngCount() * 9) - 4);
     }
+    plan.push({ date: new Date(d), count });
+  }
+  const total = plan.reduce((s, p) => s + p.count, 0);
+  const tugPool = buildTugPool(total, rngTug);
 
+  const logs: TowLog[] = [];
+  for (const { date, count } of plan) {
     for (let k = 0; k < count; k++) {
-      id++;
-      const dt = new Date(d);
+      const dt = new Date(date);
       dt.setHours(pickHour(rng), Math.floor(rng() * 60), 0, 0);
 
       const durMin = 15 + Math.floor(rng() * 11); // 15..25 min
@@ -172,15 +202,14 @@ const generateLogs = (): TowLog[] => {
       const eventTimes = Array.from({ length: nEvents }, () => Math.floor(rng() * durSec))
         .sort((x, y) => x - y)
         .map((s) => `${pad(Math.floor(s / 60))}:${pad(s % 60)}`);
-      const tug = TUGS[Math.floor(rng() * TUGS.length)];
 
       logs.push({
-        id: String(id),
+        id: String(logs.length + 1),
         dateTime: fmtDateTime(dt),
         tailNumber: tail,
         duration: `${durMin}m`,
         operator,
-        tug,
+        tug: tugPool[logs.length],
         status: 'online',
         details: {
           distance: `${distance} ft`,
