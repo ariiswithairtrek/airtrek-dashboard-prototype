@@ -36,10 +36,14 @@ const FleetStatus: React.FC<Props> = ({ logs }) => {
   const base = import.meta.env.BASE_URL;
   const total = logs.length;
 
-  const tugCounts = useMemo(() => {
+  const tugStats = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const l of logs) counts[l.tug] = (counts[l.tug] || 0) + 1;
-    return counts;
+    const distance: Record<string, number> = {};
+    for (const l of logs) {
+      counts[l.tug] = (counts[l.tug] || 0) + 1;
+      distance[l.tug] = (distance[l.tug] || 0) + (parseInt(l.details?.distance ?? '0', 10) || 0);
+    }
+    return { counts, distance };
   }, [logs]);
 
   return (
@@ -105,7 +109,12 @@ const FleetStatus: React.FC<Props> = ({ logs }) => {
               <div className="space-y-3">
                 <Row label="Number of Tows">
                   <span className="text-white mono text-sm font-bold">
-                    {(tugCounts[name] || 0).toLocaleString()}
+                    {(tugStats.counts[name] || 0).toLocaleString()}
+                  </span>
+                </Row>
+                <Row label="Towing Distance">
+                  <span className="text-white mono text-sm font-bold">
+                    {(tugStats.distance[name] || 0).toLocaleString()} ft
                   </span>
                 </Row>
                 <Row label="Last Location">
