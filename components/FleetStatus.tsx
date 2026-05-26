@@ -92,31 +92,28 @@ const FleetStatus: React.FC<Props> = ({ logs }) => {
           <div className="h-px flex-1 bg-gray-800/50"></div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {TUGS.map((name) => {
-            const big = name === 'Harlan'; // shown 25% larger
-            return (
-              <div key={name} className="bg-[#161B22]/60 border border-gray-800/60 rounded-2xl p-6">
-                <div className={`${big ? 'h-[140px]' : 'h-28'} flex items-center justify-center mb-4`}>
-                  <img
-                    src={`${base}${TUG_IMAGES[name]}`}
-                    alt={name}
-                    className={`${big ? 'max-h-[140px]' : 'max-h-28'} max-w-full object-contain`}
-                  />
-                </div>
-                <h3 className="text-white font-bold mono uppercase tracking-tight mb-4">{name}</h3>
-                <div className="space-y-3">
-                  <Row label="Number of Tows">
-                    <span className="text-white mono text-sm font-bold">
-                      {(tugCounts[name] || 0).toLocaleString()}
-                    </span>
-                  </Row>
-                  <Row label="Location">
-                    <span className="text-gray-300 text-sm font-bold">{TUG_LOCATIONS[name]}</span>
-                  </Row>
-                </div>
+          {TUGS.map((name) => (
+            <div key={name} className="bg-[#161B22]/60 border border-gray-800/60 rounded-2xl p-6">
+              <div className="h-28 flex items-center justify-center mb-4">
+                <img
+                  src={`${base}${TUG_IMAGES[name]}`}
+                  alt={name}
+                  className="max-h-28 max-w-full object-contain"
+                />
               </div>
-            );
-          })}
+              <h3 className="text-white font-bold mono uppercase tracking-tight mb-4">{name}</h3>
+              <div className="space-y-3">
+                <Row label="Number of Tows">
+                  <span className="text-white mono text-sm font-bold">
+                    {(tugCounts[name] || 0).toLocaleString()}
+                  </span>
+                </Row>
+                <Row label="Last Location">
+                  <span className="text-gray-300 text-sm font-bold">{TUG_LOCATIONS[name]}</span>
+                </Row>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
     </main>

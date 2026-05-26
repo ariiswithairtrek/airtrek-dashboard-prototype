@@ -5,25 +5,9 @@ type Mode = '30d' | 'daily';
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-// Catmull-Rom -> cubic bezier, with control points clamped to the plot box so
-// the smoothed curve never overshoots below the baseline or above the top.
-const smoothPath = (pts: { x: number; y: number }[]): string => {
-  if (pts.length < 2) return '';
-  const t = 0.16;
-  let d = `M ${pts[0].x},${pts[0].y}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] || pts[i];
-    const p1 = pts[i];
-    const p2 = pts[i + 1];
-    const p3 = pts[i + 2] || p2;
-    const c1x = p1.x + (p2.x - p0.x) * t;
-    const c1y = clamp(p1.y + (p2.y - p0.y) * t, 0, 100);
-    const c2x = p2.x - (p3.x - p1.x) * t;
-    const c2y = clamp(p2.y - (p3.y - p1.y) * t, 0, 100);
-    d += ` C ${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`;
-  }
-  return d;
-};
+// Straight line segments connecting each data point.
+const linePathOf = (pts: { x: number; y: number }[]): string =>
+  pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
 
 const TowTrendChart: React.FC = () => {
   const [mode, setMode] = useState<Mode>('30d');
@@ -38,7 +22,7 @@ const TowTrendChart: React.FC = () => {
   const X = (i: number) => (i / (n - 1)) * 100;
   const Y = (v: number) => (1 - v / yMax) * 100;
   const points = data.map((v, i) => ({ x: X(i), y: Y(v) }));
-  const linePath = smoothPath(points);
+  const linePath = linePathOf(points);
   const areaPath = `${linePath} L 100,100 L 0,100 Z`;
 
   const today = new Date();
