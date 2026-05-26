@@ -5,6 +5,7 @@ export interface TowLog {
   tailNumber: string;
   duration: string;
   operator: string;
+  tug: string;
   status: 'online' | 'offline' | 'warning';
   details?: {
     distance: string;

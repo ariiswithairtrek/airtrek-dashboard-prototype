@@ -213,6 +213,7 @@ const TowDetailDrawer: React.FC<Props> = ({ log, onClose }) => {
               <div>
                 <h4 className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-0.5">Assigned Route</h4>
                 <p className="text-gray-200 text-sm mono font-bold tracking-tight">{log.details?.path}</p>
+                <p className="text-gray-500 text-[11px] mono mt-1">Tug: <span className="text-gray-300">{log.tug}</span></p>
               </div>
             </div>
             <div className="flex items-center space-x-2 px-3 py-1 bg-[#00D100]/5 border border-[#00D100]/20 rounded-lg">

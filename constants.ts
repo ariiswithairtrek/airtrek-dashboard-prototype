@@ -86,6 +86,7 @@ const makeRng = (seed: number) => {
 
 const OPERATORS = ['Chris Lee', 'Huzefa Dossaji', 'Jon Taylor', 'David Ladnier'];
 const ZONES = ['Hangar 1', 'Hangar 2', 'Hangar 3', 'Hangar 4', 'Hangar 5', 'Ramp'];
+export const TUGS = ['Lektro', 'Mototok', 'Harlan', 'Towflexx'];
 
 const MS_DAY = 86400000;
 const TODAY = new Date(2026, 4, 25); // May 25, 2026
@@ -171,6 +172,7 @@ const generateLogs = (): TowLog[] => {
       const eventTimes = Array.from({ length: nEvents }, () => Math.floor(rng() * durSec))
         .sort((x, y) => x - y)
         .map((s) => `${pad(Math.floor(s / 60))}:${pad(s % 60)}`);
+      const tug = TUGS[Math.floor(rng() * TUGS.length)];
 
       logs.push({
         id: String(id),
@@ -178,6 +180,7 @@ const generateLogs = (): TowLog[] => {
         tailNumber: tail,
         duration: `${durMin}m`,
         operator,
+        tug,
         status: 'online',
         details: {
           distance: `${distance} ft`,

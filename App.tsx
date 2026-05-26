@@ -7,6 +7,7 @@ import AIChat from './components/AIChat';
 import TowDetailDrawer from './components/TowDetailDrawer';
 import TowTrendChart from './components/TowTrendChart';
 import HistoryView from './components/HistoryView';
+import FleetStatus from './components/FleetStatus';
 import { MOCK_LOGS, DASHBOARD_METRICS, LAST_30_DAYS_LOGS } from './constants';
 import { TowLog } from './types';
 
@@ -117,12 +118,14 @@ const App: React.FC = () => {
 
         {view === 'history' && <HistoryView logs={logs} onRowClick={handleRowClick} />}
 
-        {(view === 'fleet' || view === 'settings') && (
+        {view === 'fleet' && <FleetStatus logs={logs} />}
+
+        {view === 'settings' && (
           <main className="flex-1 flex items-center justify-center p-10">
             <div className="text-center">
               <i className="fas fa-screwdriver-wrench text-gray-700 text-4xl mb-4"></i>
               <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">
-                {view === 'fleet' ? 'Robot Fleet' : 'Settings'} — Coming Soon
+                Settings — Coming Soon
               </p>
             </div>
           </main>

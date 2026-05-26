@@ -10,7 +10,7 @@ interface Props {
 
 const NAV_ITEMS: { icon: string; label: string; key: View }[] = [
   { icon: 'fa-chart-pie', label: 'Dashboard', key: 'dashboard' },
-  { icon: 'fa-robot', label: 'Robot Fleet', key: 'fleet' },
+  { icon: 'fa-robot', label: 'Fleet Status', key: 'fleet' },
   { icon: 'fa-history', label: 'History', key: 'history' },
   { icon: 'fa-cog', label: 'Settings', key: 'settings' },
 ];

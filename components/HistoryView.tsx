@@ -11,13 +11,13 @@ const OPERATORS = ['Chris Lee', 'Huzefa Dossaji', 'Jon Taylor', 'David Ladnier']
 
 const toCsv = (logs: TowLog[]): string => {
   const headers = [
-    'ID', 'Date / Time', 'Tail Number', 'Operator', 'Duration', 'Status',
+    'ID', 'Date / Time', 'Tail Number', 'Operator', 'Tug', 'Duration', 'Status',
     'Route', 'Distance', 'Max Speed', 'Events', 'Event Times', 'Battery (End)',
   ];
   const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
   const rows = logs.map((l) =>
     [
-      l.id, l.dateTime, l.tailNumber, l.operator, l.duration, l.status,
+      l.id, l.dateTime, l.tailNumber, l.operator, l.tug, l.duration, l.status,
       l.details?.path ?? '', l.details?.distance ?? '', l.details?.maxSpeed ?? '',
       String(l.details?.events ?? 0), (l.details?.eventTimes ?? []).join(' '),
       l.details?.batteryEnd ?? '',
