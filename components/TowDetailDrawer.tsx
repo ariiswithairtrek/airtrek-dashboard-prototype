@@ -6,6 +6,8 @@ import { getTrajectory } from '../constants';
 interface Props {
   log: TowLog | null;
   onClose: () => void;
+  isFlagged: boolean;
+  onToggleFlag: (id: string) => void;
 }
 
 type CameraView = 'left' | 'right' | 'sensor';
@@ -16,7 +18,7 @@ const CAMERA_VIEWS: { key: CameraView; label: string; image: string }[] = [
   { key: 'sensor', label: 'Sensor Overlay', image: 'sensor-overlay.jpg' },
 ];
 
-const TowDetailDrawer: React.FC<Props> = ({ log, onClose }) => {
+const TowDetailDrawer: React.FC<Props> = ({ log, onClose, isFlagged, onToggleFlag }) => {
   const [camera, setCamera] = useState<CameraView>('left');
 
   if (!log) return null;
@@ -43,8 +45,16 @@ const TowDetailDrawer: React.FC<Props> = ({ log, onClose }) => {
               Tow Detail - <span className="text-[#FF4D00]">{log.tailNumber}</span>
             </h2>
             <div className="flex items-center space-x-4">
-              <button className="px-4 py-1.5 border border-[#FF4D00] text-[#FF4D00] text-xs font-bold uppercase tracking-widest rounded hover:bg-[#FF4D00]/10 transition-colors">
-                Flag for Review
+              <button
+                onClick={() => onToggleFlag(log.id)}
+                className={`px-4 py-1.5 text-xs font-bold uppercase tracking-widest rounded transition-colors ${
+                  isFlagged
+                    ? 'bg-[#FF4D00] text-white hover:bg-[#FF4D00]/90'
+                    : 'border border-[#FF4D00] text-[#FF4D00] hover:bg-[#FF4D00]/10'
+                }`}
+              >
+                <i className="fas fa-flag mr-2"></i>
+                {isFlagged ? 'Flagged' : 'Flag for Review'}
               </button>
               <button onClick={onClose} className="text-gray-500 hover:text-white p-2">
                 <i className="fas fa-times text-xl"></i>

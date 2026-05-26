@@ -5,9 +5,10 @@ import { TowLog } from '../types';
 interface Props {
   logs: TowLog[];
   onRowClick: (log: TowLog) => void;
+  flaggedIds: Set<string>;
 }
 
-const LogsTable: React.FC<Props> = ({ logs, onRowClick }) => {
+const LogsTable: React.FC<Props> = ({ logs, onRowClick, flaggedIds }) => {
   return (
     <div className="overflow-auto max-h-[600px] rounded-xl border border-gray-800/50 bg-[#1C2128]/40 shadow-2xl">
       <table className="w-full text-left">
@@ -23,12 +24,17 @@ const LogsTable: React.FC<Props> = ({ logs, onRowClick }) => {
         </thead>
         <tbody className="divide-y divide-gray-800/30">
           {logs.map((log) => (
-            <tr 
-              key={log.id} 
+            <tr
+              key={log.id}
               onClick={() => onRowClick(log)}
-              className="hover:bg-gray-800/30 cursor-pointer transition-colors text-[13px] text-gray-300 group"
+              className={`hover:bg-gray-800/30 cursor-pointer transition-colors text-[13px] text-gray-300 group ${
+                flaggedIds.has(log.id) ? 'bg-[#FF4D00]/5' : ''
+              }`}
             >
-              <td className="px-8 py-5 mono text-gray-400 group-hover:text-gray-200">{log.dateTime}</td>
+              <td className="px-8 py-5 mono text-gray-400 group-hover:text-gray-200">
+                {flaggedIds.has(log.id) && <i className="fas fa-flag text-[#FF4D00] mr-2 text-[10px]"></i>}
+                {log.dateTime}
+              </td>
               <td className="px-8 py-5 font-black text-white text-base tracking-tight group-hover:scale-[1.02] transition-transform">{log.tailNumber}</td>
               <td className="px-8 py-5 mono group-hover:text-gray-200">{log.duration}</td>
               <td className="px-8 py-5 group-hover:text-gray-200">{log.operator}</td>

@@ -6,24 +6,25 @@ import { downloadXlsx } from '../services/xlsx';
 interface Props {
   logs: TowLog[];
   onRowClick: (log: TowLog) => void;
+  flaggedIds: Set<string>;
 }
 
 const OPERATORS = ['Chris Lee', 'Huzefa Dossaji', 'Jon Taylor', 'David Ladnier'];
 
 const HEADERS = [
-  'ID', 'Date / Time', 'Tail Number', 'Operator', 'Tug', 'Duration', 'Status',
+  'ID', 'Flagged', 'Date / Time', 'Tail Number', 'Operator', 'Tug', 'Duration', 'Status',
   'Route', 'Distance', 'Max Speed', 'Events', 'Event Times', 'Battery (End)',
 ];
 
-const toRows = (logs: TowLog[]): string[][] =>
+const toRows = (logs: TowLog[], flaggedIds: Set<string>): string[][] =>
   logs.map((l) => [
-    l.id, l.dateTime, l.tailNumber, l.operator, l.tug, l.duration, l.status,
+    l.id, flaggedIds.has(l.id) ? 'Yes' : 'No', l.dateTime, l.tailNumber, l.operator, l.tug, l.duration, l.status,
     l.details?.path ?? '', l.details?.distance ?? '', l.details?.maxSpeed ?? '',
     String(l.details?.events ?? 0), (l.details?.eventTimes ?? []).join(' '),
     l.details?.batteryEnd ?? '',
   ]);
 
-const HistoryView: React.FC<Props> = ({ logs, onRowClick }) => {
+const HistoryView: React.FC<Props> = ({ logs, onRowClick, flaggedIds }) => {
   const [query, setQuery] = useState('');
   const [operator, setOperator] = useState('All');
   const [eventsOnly, setEventsOnly] = useState(false);
@@ -57,7 +58,7 @@ const HistoryView: React.FC<Props> = ({ logs, onRowClick }) => {
   }, [logs, query, operator, eventsOnly, fromDate, toDate]);
 
   const exportData = () => {
-    downloadXlsx(`airtrek-logs-${new Date().toISOString().slice(0, 10)}.xlsx`, HEADERS, toRows(filtered));
+    downloadXlsx(`airtrek-logs-${new Date().toISOString().slice(0, 10)}.xlsx`, HEADERS, toRows(filtered, flaggedIds));
   };
 
   const inputCls =
@@ -143,7 +144,7 @@ const HistoryView: React.FC<Props> = ({ logs, onRowClick }) => {
           {filtered.length} of {logs.length} missions
         </div>
 
-        <LogsTable logs={filtered} onRowClick={onRowClick} />
+        <LogsTable logs={filtered} onRowClick={onRowClick} flaggedIds={flaggedIds} />
       </section>
     </main>
   );

@@ -14,6 +14,13 @@ const App: React.FC = () => {
   const [view, setView] = useState<View>('dashboard');
   const [logs] = useState(MOCK_LOGS);
   const [selectedTow, setSelectedTow] = useState<TowLog | null>(null);
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(() => {
+    try {
+      return new Set<string>(JSON.parse(localStorage.getItem('airtrek_flagged') || '[]'));
+    } catch {
+      return new Set<string>();
+    }
+  });
 
   const handleRowClick = (log: TowLog) => {
     setSelectedTow(log);
@@ -21,6 +28,20 @@ const App: React.FC = () => {
 
   const closeDrawer = () => {
     setSelectedTow(null);
+  };
+
+  const toggleFlag = (id: string) => {
+    setFlaggedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      try {
+        localStorage.setItem('airtrek_flagged', JSON.stringify([...next]));
+      } catch {
+        /* ignore storage errors */
+      }
+      return next;
+    });
   };
 
   return (
@@ -67,22 +88,29 @@ const App: React.FC = () => {
               <h2 className="text-xl font-bold text-white tracking-tight mono uppercase text-sm">Key Metrics</h2>
               <div className="h-px flex-1 bg-gray-800/50"></div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <MetricCard 
-                label="Total Tows (MTD)" 
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_0.62fr] gap-8">
+              <MetricCard
+                label="Total Tows (MTD)"
                 value={String(DASHBOARD_METRICS.mtd)}
               />
-              <MetricCard 
-                label="Total Tows (30D)" 
+              <MetricCard
+                label="Total Tows (30D)"
                 value={String(DASHBOARD_METRICS.last30)}
-                subValue="5%" 
-                trend="up" 
+                subValue="5%"
+                trend="up"
               />
               <MetricCard
                 label="Avg. Tow Time (30D)"
                 value={DASHBOARD_METRICS.avgTowTime}
                 accent={true}
               />
+              <div className="bg-[#1C2128] border border-gray-800/50 p-6 rounded-xl flex flex-col justify-between shadow-xl min-h-[160px]">
+                <h3 className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.15em] mb-4">Flagged for Review</h3>
+                <div className="flex items-center gap-2.5">
+                  <i className="fas fa-flag text-[#FF4D00] text-lg"></i>
+                  <span className="text-4xl font-bold mono tracking-tighter text-gray-100">{flaggedIds.size}</span>
+                </div>
+              </div>
             </div>
 
             <TowTrendChart />
@@ -93,7 +121,7 @@ const App: React.FC = () => {
               <h2 className="text-xl font-bold text-white tracking-tight mono uppercase text-sm">Last 30 Days</h2>
               <div className="h-px flex-1 bg-gray-800/50"></div>
             </div>
-            <LogsTable logs={LAST_30_DAYS_LOGS} onRowClick={handleRowClick} />
+            <LogsTable logs={LAST_30_DAYS_LOGS} onRowClick={handleRowClick} flaggedIds={flaggedIds} />
           </section>
 
           {/* System Announcement Footer Area */}
@@ -115,7 +143,9 @@ const App: React.FC = () => {
         </main>
         )}
 
-        {view === 'history' && <HistoryView logs={logs} onRowClick={handleRowClick} />}
+        {view === 'history' && (
+          <HistoryView logs={logs} onRowClick={handleRowClick} flaggedIds={flaggedIds} />
+        )}
 
         {view === 'fleet' && <FleetStatus logs={logs} />}
 
@@ -132,7 +162,12 @@ const App: React.FC = () => {
       </div>
 
       {/* Detail Popup Drawer */}
-      <TowDetailDrawer log={selectedTow} onClose={closeDrawer} />
+      <TowDetailDrawer
+        log={selectedTow}
+        onClose={closeDrawer}
+        isFlagged={!!selectedTow && flaggedIds.has(selectedTow.id)}
+        onToggleFlag={toggleFlag}
+      />
     </div>
   );
 };
