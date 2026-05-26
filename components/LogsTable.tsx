@@ -19,7 +19,6 @@ const LogsTable: React.FC<Props> = ({ logs, onRowClick }) => {
             <th className="px-8 py-5">Operator</th>
             <th className="px-8 py-5">Tug</th>
             <th className="px-8 py-5">Events</th>
-            <th className="px-8 py-5 text-right">Report</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-800/30">
@@ -43,20 +42,6 @@ const LogsTable: React.FC<Props> = ({ logs, onRowClick }) => {
                 ) : (
                   <span className="text-gray-600">—</span>
                 )}
-              </td>
-              <td className="px-8 py-5">
-                <div className="flex justify-end">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      alert(`Sending report for ${log.tailNumber}...`);
-                    }}
-                    className="bg-gray-800/60 hover:bg-gray-700 text-gray-300 hover:text-white px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-[0.1em] transition-colors border border-gray-700 hover:border-gray-500"
-                  >
-                    <i className="fas fa-paper-plane mr-1.5 opacity-70"></i>
-                    Send
-                  </button>
-                </div>
               </td>
             </tr>
           ))}

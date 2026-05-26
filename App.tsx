@@ -80,7 +80,7 @@ const App: React.FC = () => {
                 trend="up" 
               />
               <MetricCard
-                label="Avg. Tow Time"
+                label="Avg. Tow Time (30D)"
                 value={DASHBOARD_METRICS.avgTowTime}
                 accent={true}
               />

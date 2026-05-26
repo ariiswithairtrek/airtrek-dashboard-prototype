@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { TowLog } from '../types';
 import LogsTable from './LogsTable';
+import { downloadXlsx } from '../services/xlsx';
 
 interface Props {
   logs: TowLog[];
@@ -9,22 +10,18 @@ interface Props {
 
 const OPERATORS = ['Chris Lee', 'Huzefa Dossaji', 'Jon Taylor', 'David Ladnier'];
 
-const toCsv = (logs: TowLog[]): string => {
-  const headers = [
-    'ID', 'Date / Time', 'Tail Number', 'Operator', 'Tug', 'Duration', 'Status',
-    'Route', 'Distance', 'Max Speed', 'Events', 'Event Times', 'Battery (End)',
-  ];
-  const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
-  const rows = logs.map((l) =>
-    [
-      l.id, l.dateTime, l.tailNumber, l.operator, l.tug, l.duration, l.status,
-      l.details?.path ?? '', l.details?.distance ?? '', l.details?.maxSpeed ?? '',
-      String(l.details?.events ?? 0), (l.details?.eventTimes ?? []).join(' '),
-      l.details?.batteryEnd ?? '',
-    ].map(esc).join(','),
-  );
-  return [headers.map(esc).join(','), ...rows].join('\n');
-};
+const HEADERS = [
+  'ID', 'Date / Time', 'Tail Number', 'Operator', 'Tug', 'Duration', 'Status',
+  'Route', 'Distance', 'Max Speed', 'Events', 'Event Times', 'Battery (End)',
+];
+
+const toRows = (logs: TowLog[]): string[][] =>
+  logs.map((l) => [
+    l.id, l.dateTime, l.tailNumber, l.operator, l.tug, l.duration, l.status,
+    l.details?.path ?? '', l.details?.distance ?? '', l.details?.maxSpeed ?? '',
+    String(l.details?.events ?? 0), (l.details?.eventTimes ?? []).join(' '),
+    l.details?.batteryEnd ?? '',
+  ]);
 
 const HistoryView: React.FC<Props> = ({ logs, onRowClick }) => {
   const [query, setQuery] = useState('');
@@ -59,14 +56,8 @@ const HistoryView: React.FC<Props> = ({ logs, onRowClick }) => {
     });
   }, [logs, query, operator, eventsOnly, fromDate, toDate]);
 
-  const exportCsv = () => {
-    const blob = new Blob([toCsv(filtered)], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `airtrek-logs-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportData = () => {
+    downloadXlsx(`airtrek-logs-${new Date().toISOString().slice(0, 10)}.xlsx`, HEADERS, toRows(filtered));
   };
 
   const inputCls =
@@ -141,7 +132,7 @@ const HistoryView: React.FC<Props> = ({ logs, onRowClick }) => {
             <i className="fas fa-triangle-exclamation mr-2"></i>Events Only
           </button>
           <button
-            onClick={exportCsv}
+            onClick={exportData}
             className="bg-gray-800/40 text-[10px] font-bold px-5 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-all border border-gray-700 uppercase tracking-widest"
           >
             <i className="fas fa-file-export mr-2"></i>Export Data
